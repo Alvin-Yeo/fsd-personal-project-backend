@@ -6,6 +6,7 @@ const { pingMysql, createUser } = require('./src/db_mysql');
 const { passport, localStrategyAuth } = require('./src/auth_passport');
 const jwt = require('jsonwebtoken');
 const { sendMail } = require('./src/nodemailer_gmail');
+const fetch = require('node-fetch');
 
 // environment configuration
 require('dotenv').config();
@@ -28,7 +29,7 @@ app.use(passport.initialize());
 app.post('/register',
     express.json(),
     (req, res) => {
-        const email = req.body.email;
+        const email = req.body.username;
         const password = req.body.password;
 
         createUser([ email, password ])
@@ -69,6 +70,24 @@ app.post('/login',
         res.json({ token });
     }
 );
+
+// get /quote
+app.get('/quote', async(req, res) => {
+    fetch('https://api.quotable.io/random')
+        .then(result => result.json())
+        .then(result => {
+            res.status(200);
+            res.type('application/json');
+            res.json({ msg: result.content, author: result.author });
+        })
+        .catch(error => {
+            console.error(`[ERROR] Failed to fetch external api.`);
+            console.error(`[ERROR] Error: `, error);
+            res.status(500);
+            res.type('application/json');
+            res.json({ error });
+        });
+});
 
 // check db connections and start app
 const p0 = pingMysql();
