@@ -8,7 +8,7 @@ const { passport, localStrategyAuth } = require('./src/auth_passport');
 const jwt = require('jsonwebtoken');
 const { sendMail } = require('./src/nodemailer_gmail');
 const { pingMysql, createUser } = require('./src/db_mysql');
-const { mkNote, connectMongoDb, insertOne, deleteOne } = require('./src/db_mongo');
+const { mkNote, connectMongoDb, insertOne, deleteOne, getNotes } = require('./src/db_mongo');
 const { upload, readFile, putObject, deleteObject, checkAWSAcessKey } = require('./src/db_s3_multer');
 
 
@@ -88,7 +88,7 @@ app.post('/login',
 
 // get /quote
 app.get('/quote', async(req, res) => {
-    fetch('https://api.quotable1.io/random')
+    fetch('https://api.quotable.io/random')
         .then(result => result.json())
         .then(result => {
             res.status(200);
@@ -98,6 +98,30 @@ app.get('/quote', async(req, res) => {
         .catch(error => {
             mkSystemErrResponse(error, 'Failed to fetch external api.', res);
         });
+});
+
+// get /s3endpoint
+app.get('/s3endpoint', (req, res) => {
+    const endpoint = `https://${process.env.S3_BUCKET}.${process.env.S3_ENDPOINT}/`;
+    res.status(200);
+    res.type('application/json');
+    res.json({ endpoint });
+});
+
+// get /notes/:user
+app.get('/notes/:user', (req, res) => {
+    const user = req.params.user;
+
+    getNotes(user)
+        .then((result) => {
+            console.info(`[INFO] Notes retrieved successfully for ${user}`);
+            res.status(200);
+            res.type('application/json');
+            res.json({ notes: result });
+        })
+        .catch((error) => {
+            mkSystemErrResponse(error, 'Failed to retrieve user notes.', res);
+        })
 });
 
 // post /note

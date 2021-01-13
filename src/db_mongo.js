@@ -46,5 +46,10 @@ const deleteOne = (id) => {
     return mongoClient.db(MONGO_DATABASE).collection(MONGO_COLLECTION).deleteOne({ '_id': ObjectID(id) });
 }
 
+// getNotes
+const getNotes = (user) => {
+    return mongoClient.db(MONGO_DATABASE).collection(MONGO_COLLECTION).find({ user }).toArray();
+}
 
-module.exports = { mkNote, connectMongoDb, insertOne, deleteOne }; 
+
+module.exports = { mkNote, connectMongoDb, insertOne, deleteOne, getNotes }; 
