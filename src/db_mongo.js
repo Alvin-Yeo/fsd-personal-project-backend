@@ -47,9 +47,42 @@ const deleteOne = (id) => {
 }
 
 // getNotes
-const getNotes = (user) => {
-    return mongoClient.db(MONGO_DATABASE).collection(MONGO_COLLECTION).find({ user }).toArray();
+const getNotes = (user, type = 'desc') => {
+    const order = (type === 'asc') ? 1 : -1;
+    return mongoClient.db(MONGO_DATABASE).collection(MONGO_COLLECTION).find({ user }).sort({ date: order }).toArray();
 }
 
+// getSingleNote
+const getSingleNote = (id) => {
+    return mongoClient.db(MONGO_DATABASE).collection(MONGO_COLLECTION).find(ObjectID(id)).toArray();
+}
 
-module.exports = { mkNote, connectMongoDb, insertOne, deleteOne, getNotes }; 
+// getPhotos
+const getPhotos = (user, type = 'desc') => {
+    const order = (type === 'asc') ? 1 : -1;
+    return mongoClient.db(MONGO_DATABASE).collection(MONGO_COLLECTION).aggregate([
+        { 
+            $match: {
+                user,
+                photo: { $ne: null } 
+            }
+        },
+        {
+            $sort: {
+                date: order
+            }
+        },
+        {
+            $group: {
+                _id: '$user',
+                photos: {
+                    $push: '$photo'
+                }
+            }
+        }
+    ])
+    .toArray();
+};
+
+
+module.exports = { mkNote, connectMongoDb, insertOne, deleteOne, getNotes, getPhotos, getSingleNote }; 

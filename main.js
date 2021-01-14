@@ -8,7 +8,7 @@ const { passport, localStrategyAuth } = require('./src/auth_passport');
 const jwt = require('jsonwebtoken');
 const { sendMail } = require('./src/nodemailer_gmail');
 const { pingMysql, createUser } = require('./src/db_mysql');
-const { mkNote, connectMongoDb, insertOne, deleteOne, getNotes } = require('./src/db_mongo');
+const { mkNote, connectMongoDb, insertOne, deleteOne, getNotes, getPhotos, getSingleNote } = require('./src/db_mongo');
 const { upload, readFile, putObject, deleteObject, checkAWSAcessKey } = require('./src/db_s3_multer');
 
 
@@ -111,13 +111,47 @@ app.get('/s3endpoint', (req, res) => {
 // get /notes/:user
 app.get('/notes/:user', (req, res) => {
     const user = req.params.user;
+    const order = req.query.order;
 
-    getNotes(user)
+    getNotes(user, order)
         .then((result) => {
             console.info(`[INFO] Notes retrieved successfully for ${user}`);
             res.status(200);
             res.type('application/json');
             res.json({ notes: result });
+        })
+        .catch((error) => {
+            mkSystemErrResponse(error, 'Failed to retrieve user notes.', res);
+        })
+});
+
+// get /notes/:photos
+app.get('/photos/:user', (req, res) => {
+    const user = req.params.user;
+    const order = req.query.order;
+
+    getPhotos(user, order)
+        .then((result) => {
+            console.info(`[INFO] Photos retrieved successfully for ${user}`);
+            res.status(200);
+            res.type('application/json');
+            res.json({ data: result[0] });
+        })
+        .catch((error) => {
+            mkSystemErrResponse(error, 'Failed to retrieve user photos.', res);
+        })
+});
+
+// get /note/:id
+app.get('/note/:id', (req, res) => {
+    const id = req.params.id;
+
+    getSingleNote(id)
+        .then((result) => {
+            console.info(`[INFO] Notes retrieved successfully for ${id}`);
+            res.status(200);
+            res.type('application/json');
+            res.json({ note: result });
         })
         .catch((error) => {
             mkSystemErrResponse(error, 'Failed to retrieve user notes.', res);
