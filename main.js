@@ -204,6 +204,9 @@ app.post('/note',
     }
 );
 
+// serve angular app
+app.use(express.static(`${__dirname}/simple-notes`));
+
 // check db connections and start app
 const p0 = pingMysql();
 

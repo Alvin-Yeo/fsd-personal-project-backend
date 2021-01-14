@@ -5,7 +5,7 @@ const { MongoClient, ObjectID } = require('mongodb');
 require('dotenv').config();
 
 // connection string
-const MONGO_LOCALHOST = 'mongodb://localhost:27017';
+const MONGO_LOCALHOST = process.env.MONGO_HOST || 'mongodb://localhost:27017';
 const MONGO_DATABASE = process.env.MONGO_DATABASE || 'simple-notes';
 const MONGO_COLLECTION = process.env.MONGO_COLLECTION || 'notes';
 
